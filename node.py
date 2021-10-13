@@ -3,8 +3,8 @@ from scrapy.http import TextResponse
 from scrapy.http.response import text
 import regex as re
 
-#url = 'https://www.topsoe.com/careers/available-jobs'
-url = 'https://karriere.forsvaret.dk/job/'
+url = 'https://www.topsoe.com/careers/available-jobs'
+#url = 'https://karriere.forsvaret.dk/job/'
 req = req.get(url).content
 response = TextResponse(url=url, body=req)
 
@@ -16,15 +16,20 @@ tags_ancestor_list = response.xpath('//a/ancestor::node()').getall()
 
 class node:
 
-    def __init__(self, node, ancestor):
+    def __init__(self, node, raw_node, ancestor):
         self.node = node
+        self.raw_node = raw_node
         self.ancestor = ancestor
+        self.node_attributes = raw_node.attrib
 
     def get_node(self):
         return self.node
     
     def get_ancestor(self):
         return self.ancestor
+
+    def get_node_attributes(self):
+        return self.node_attributes.get("href")
 
 
 def get_tag(ancestor):
@@ -50,7 +55,8 @@ def compare_ancestors(list_of_nodes):
             else:
                 some_list.append(node)
                 break
-        clustered_node_list.append(some_list)
+        if some_list:
+            clustered_node_list.append(some_list)
     return clustered_node_list
 
 
@@ -67,11 +73,11 @@ for tag in tags_list:
     for ancestor in raw_ancestors:
         clean_ancestors.append(get_tag(ancestor))
 
-    node_list.append(node(node_tag, clean_ancestors)) 
+    node_list.append(node(node_tag, tag, clean_ancestors)) 
 
 x = compare_ancestors(node_list)
 
 for index, y in enumerate(x):
-    print(index, y)
+    print(index,y)
 
 #print(len(tags_list))
